@@ -8,11 +8,11 @@ Each commit is divided into various sub section that is fundamentally important 
 
 
 
-# LLMOps Gemini Gateway ( Commit 1 )
+## LLMOps Gemini Gateway ( Commit 1 )
 
 A production-ready LLM Gateway service that provides a clean abstraction layer over Google's Gemini API, following core LLMOps patterns used in production.
 
-## 🎯 Goal
+### 🎯 Goal
 
 By the end of this commit we will have:
 
@@ -21,7 +21,7 @@ By the end of this commit we will have:
 ✅ Config-driven model setup  
 ✅ Ready for Docker & cloud scale  
 
-## 🏗️ Architecture
+### 🏗️ Architecture
 
 You are building your own LLM API, not an app.
 
@@ -42,13 +42,13 @@ This gives you:
 
 This is the core LLMOps pattern used in production.
 
-## 🚀 Quick Start
+### 🚀 Quick Start
 
-### Prerequisites
+#### Prerequisites
 - Python 3.11+
 - Google Gemini API key
 
-### Local Development
+#### Local Development
 
 1. **Clone and setup:**
 ```bash
@@ -73,7 +73,7 @@ uvicorn app.main:app --reload
 
 The API will be available at `http://127.0.0.1:8000`
 
-### Docker
+#### Docker
 
 1. **Build and run:**
 ```bash
@@ -82,14 +82,14 @@ docker-compose up --build
 
 The service will be available at `http://localhost:8001`
 
-## 📡 API Endpoints
+### 📡 API Endpoints
 
-### Health Check
+#### Health Check
 ```bash
 GET /health
 ```
 
-### Chat (Non-streaming)
+#### Chat (Non-streaming)
 ```bash
 POST /chat
 Content-Type: application/json
@@ -110,7 +110,7 @@ Content-Type: application/json
 }
 ```
 
-### Chat Stream
+#### Chat Stream
 ```bash
 POST /chat/stream
 Content-Type: application/json
@@ -124,7 +124,7 @@ Content-Type: application/json
 
 Returns streaming text chunks in real-time.
 
-## 🏛️ Project Structure
+### 🏛️ Project Structure
 
 ```
 LLMOps/
@@ -139,7 +139,7 @@ LLMOps/
 └── requirements.txt
 ```
 
-## 🔧 Features
+### 🔧 Features
 
 - **Request ID tracking** - Every request gets a unique ID for tracing
 - **Structured logging** - Production-ready logging with request context
@@ -148,14 +148,14 @@ LLMOps/
 - **Streaming support** - Real-time streaming responses
 - **Config management** - Environment-based configuration
 
-## 📝 Environment Variables
+### 📝 Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `GEMINI_API_KEY` | Yes | Your Google Gemini API key |
 | `DEFAULT_MODEL` | Yes | Default model name (e.g., `gemini-pro`) |
 
-## 🧪 Testing
+### 🧪 Testing
 
 Test streaming with curl:
 ```bash
