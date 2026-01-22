@@ -1,0 +1,7 @@
+# environment folders
+env/
+__pycache__/
+
+
+#creds
+.env

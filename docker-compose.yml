@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  llm-api:
+    build: .
+    container_name: llmops-gemini
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    restart: unless-stopped
