@@ -1,9 +1,9 @@
-#LLMOps 
+# LLMOps 
 
 Each commit is divided into various sub section that is fundamentally important for LLMOps
 
-###Commit 1 : LLMOps Gemini Gateway
-###Commit 2 : Prompt Ops + Caching
+### Commit 1 : LLMOps Gemini Gateway
+### Commit 2 : Prompt Ops + Caching
 
 
 
