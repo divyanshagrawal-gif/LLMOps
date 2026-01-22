@@ -8,7 +8,7 @@ Each commit is divided into various sub section that is fundamentally important 
 
 
 
-# LLMOps Gemini Gateway
+# LLMOps Gemini Gateway ( Commit 1 )
 
 A production-ready LLM Gateway service that provides a clean abstraction layer over Google's Gemini API, following core LLMOps patterns used in production.
 
