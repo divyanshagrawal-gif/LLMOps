@@ -2,7 +2,7 @@
 
 Each commit is divided into various sub section that is fundamentally important for LLMOps
 
-### Commit 1 commit d0654ca3a85b598ebe6fbddb6d7ba75538f3a59b : LLMOps Gemini Gateway
+### Commit 1 commit #d0654ca3a85b598ebe6fbddb6d7ba75538f3a59b : LLMOps Gemini Gateway
 ### Commit 2 : Prompt Ops + Caching
 
 
