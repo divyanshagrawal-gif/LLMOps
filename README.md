@@ -2,7 +2,7 @@
 
 Each commit is divided into various sub section that is fundamentally important for LLMOps
 
-### Commit 1 commit #d0654ca3a85b598ebe6fbddb6d7ba75538f3a59b : LLMOps Gemini Gateway
+### Commit 1 — [d0654ca3a85b598ebe6fbddb6d7ba75538f3a59b](https://github.com/divyanshagrawal-gif/LLMOps/commit/d0654ca3a85b598ebe6fbddb6d7ba75538f3a59b) : LLMOps Gemini Gateway
 ### Commit 2 : Prompt Ops + Caching
 
 
@@ -163,4 +163,3 @@ curl -N -X POST http://127.0.0.1:8000/chat/stream \
   -H "Content-Type: application/json" \
   -d '{"prompt": "Count to 10", "max_tokens": 100}'
 ```
-
