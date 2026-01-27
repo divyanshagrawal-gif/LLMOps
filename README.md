@@ -444,4 +444,20 @@ Strategy
 - Assign one prompt per request
 - Stickiness via request_id
 
+## Evaluation, Observability & Cost Intelligence
 
+✅ Measure LLM quality (automatically)
+✅ Compare prompt versions objectively
+✅ Track latency + tokens + cost
+✅ Explain why something went wrong
+
+### PART A — Observability (LLMOps Core)
+Introduce Langfuse (LLM-native observability)
+
+Why Langfuse over generic APM:
+- Prompt-aware
+- Token-aware
+- Model-aware
+- Eval-aware
+
+Adding to docker-compose.yml langfuse and postgres

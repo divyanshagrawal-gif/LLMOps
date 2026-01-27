@@ -13,3 +13,22 @@ services:
     image: redis:latest
     ports:
       - "6379:6379"
+  langfuse:
+    image: langfuse/langfuse:2
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://langfuse:langfuse@postgres:5432/langfuse
+      NEXTAUTH_SECRET: secret
+      NEXTAUTH_URL: http://localhost:3000
+      SALT: salt
+      AUTH_DISABLE_SIGNUP: "false"
+      TELEMETRY_ENABLED: "false"
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: langfuse
+      POSTGRES_DB: langfuse
