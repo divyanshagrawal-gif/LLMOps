@@ -9,3 +9,4 @@ class ChatResponse(BaseModel):
     response: str
     model: str
     latency: float
+    cache_hit: bool

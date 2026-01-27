@@ -163,3 +163,84 @@ curl -N -X POST http://127.0.0.1:8000/chat/stream \
   -H "Content-Type: application/json" \
   -d '{"prompt": "Count to 10", "max_tokens": 100}'
 ```
+
+
+
+## Prompt Ops + Caching 
+By the end of this commit , you will have:
+
+✅ Prompts as versioned artifacts (YAML)
+✅ Prompt registry + loader
+✅ Prompt switching without redeploy
+✅ L1 + L2 caching (in-memory + Redis)
+✅ Cache hit metrics
+
+This directly addresses cost, reliability, and control.
+
+PART A — PROMPT OPS (Non-Negotiable)
+1️⃣ Prompt Design Philosophy (Important)
+
+In production:
+Prompts are code
+Prompts change more often than models
+Prompt rollback must be instant
+
+So:
+❌ No inline prompts
+❌ No f-strings in handlers
+✅ External YAML + versioning
+
+Prompt Registry Structure
+
+this folder:
+
+app/prompts/
+  summarizer/
+    v1.yaml
+    v2.yaml
+  
+Prompt Loader (Core Infra)
+app/services/prompt_loader.py
+✔️ Decoupled
+✔️ Git-versionable
+✔️ Model-agnostic
+
+
+Use Prompt Registry in API
+
+Update your endpoint logic.
+app/api/chat.py (add new endpoint)
+🚨 No redeploy needed to change prompt content.
+
+
+PART B — CACHING (Token = 💸)
+
+Caching Strategy
+What we cache
+Final rendered prompt
+Model + temperature
+
+Cache key
+hash(prompt + model + temperature)
+
+6️⃣ Add Redis (L2 Cache)
+Update docker-compose.yml:
+
+Cache Service
+app/services/cache.py
+
+Cache-Aware LLM Call
+Update Gemini call logic:
+app/services/llm_service.py (new)
+
+Log Cache Hits
+Add to logging:
+logger.info(
+    "cache_lookup",
+    extra={
+        "extra": {
+            "request_id": request_id,
+            "cache_hit": cache_hit
+        }
+    }
+)

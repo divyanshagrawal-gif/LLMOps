@@ -1,0 +1,8 @@
+name: summarizer
+version: v2
+system: |
+  You are a highly precise summarizer. Avoid speculation.
+user: |
+  Provide a bullet-point summary of the following text:
+
+  {{text}}
