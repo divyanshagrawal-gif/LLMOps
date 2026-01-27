@@ -166,81 +166,254 @@ curl -N -X POST http://127.0.0.1:8000/chat/stream \
 
 
 
-## Prompt Ops + Caching 
-By the end of this commit , you will have:
+## Prompt Ops + Caching (Commit 2)
 
-✅ Prompts as versioned artifacts (YAML)
-✅ Prompt registry + loader
-✅ Prompt switching without redeploy
-✅ L1 + L2 caching (in-memory + Redis)
-✅ Cache hit metrics
+By the end of this commit, we will have:
 
-This directly addresses cost, reliability, and control.
+✅ Prompts as versioned artifacts (YAML)  
+✅ Prompt registry + loader with variable substitution  
+✅ Prompt switching without redeploy  
+✅ Redis-based caching (L2 cache)  
+✅ Cache-aware streaming and non-streaming responses  
+✅ Cache hit metrics in responses and logs  
 
-PART A — PROMPT OPS (Non-Negotiable)
-1️⃣ Prompt Design Philosophy (Important)
+This directly addresses **cost** (reduce API calls), **reliability** (consistent responses), and **control** (prompt versioning).
+
+---
+
+### PART A — PROMPT OPS
+
+#### 🎯 Prompt Design Philosophy
 
 In production:
-Prompts are code
-Prompts change more often than models
-Prompt rollback must be instant
+- **Prompts are code** - They need versioning, review, and rollback
+- **Prompts change more often than models** - Business logic lives in prompts
+- **Prompt rollback must be instant** - No redeploy needed
 
-So:
-❌ No inline prompts
-❌ No f-strings in handlers
-✅ External YAML + versioning
+**Principles:**
+- ❌ No inline prompts in code
+- ❌ No f-strings in handlers
+- ✅ External YAML files with versioning
+- ✅ Git-tracked prompt changes
 
-Prompt Registry Structure
+#### 📁 Prompt Registry Structure
 
-this folder:
+Prompts are organized by name and version:
 
+```
 app/prompts/
   summarizer/
     v1.yaml
     v2.yaml
-  
-Prompt Loader (Core Infra)
-app/services/prompt_loader.py
-✔️ Decoupled
-✔️ Git-versionable
-✔️ Model-agnostic
+  [future prompts]/
+    v1.yaml
+```
 
+**YAML Format:**
+```yaml
+name: summarizer
+version: v1
+system: |
+  You are a concise summarizer.
+user: |
+  Summarize the following text clearly:
 
-Use Prompt Registry in API
+  {{text}}
+```
 
-Update your endpoint logic.
-app/api/chat.py (add new endpoint)
-🚨 No redeploy needed to change prompt content.
+Variables are substituted using `{{variable_name}}` syntax.
 
+#### 🔧 Prompt Loader Implementation
 
-PART B — CACHING (Token = 💸)
+**Location:** `app/services/prompt_loader.py`
 
-Caching Strategy
-What we cache
-Final rendered prompt
-Model + temperature
+**Features:**
+- ✅ Decoupled from model providers
+- ✅ Git-versionable (YAML files in repo)
+- ✅ Model-agnostic (works with any LLM)
+- ✅ Structured logging for load/render operations
+- ✅ Error handling with detailed context
 
-Cache key
-hash(prompt + model + temperature)
+**Usage:**
+```python
+from app.services.prompt_loader import PromptLoader
 
-6️⃣ Add Redis (L2 Cache)
-Update docker-compose.yml:
+loader = PromptLoader()
 
-Cache Service
-app/services/cache.py
+# Load prompt definition
+prompt_def = loader.load(name="summarizer", version="v1")
 
-Cache-Aware LLM Call
-Update Gemini call logic:
-app/services/llm_service.py (new)
+# Render with variables
+final_prompt = loader.render(
+    prompt_def,
+    {"text": "Your content here"}
+)
+```
 
-Log Cache Hits
-Add to logging:
+#### 🚀 Using Prompts in API
+
+**Example: `/summarize` endpoint**
+
+```python
+@router.post("/summarize")
+def summarize(request: ChatRequest, req: Request):
+    # Load prompt version (no redeploy needed to change)
+    prompt_def = prompt_loader.load(
+        name="summarizer",
+        version="v1"  # Switch to "v2" to use new version
+    )
+    
+    # Render with user input
+    final_prompt = prompt_loader.render(
+        prompt_def,
+        {"text": request.prompt}
+    )
+    
+    # Use cached LLM call
+    result, cache_hit = generate_with_cache(...)
+```
+
+**Benefits:**
+- 🚨 **No redeploy needed** - Change YAML file and restart service
+- 📝 **Version control** - Track prompt changes in Git
+- 🔄 **Easy rollback** - Switch version in code or config
+- 🧪 **A/B testing** - Test different prompt versions
+
+---
+
+### PART B — CACHING (Token = 💸)
+
+#### 🎯 Caching Strategy
+
+**What we cache:**
+- Final rendered prompt (after variable substitution)
+- Model name
+- Temperature parameter
+
+**Cache Key:**
+```
+SHA256(prompt:model:temperature)
+```
+
+This ensures identical prompts with same parameters return cached results.
+
+#### 🗄️ Redis Setup (L2 Cache)
+
+**Docker Compose Configuration:**
+```yaml
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+```
+
+**Cache Service:** `app/services/cache.py`
+- SHA256-based key generation
+- JSON serialization for complex responses
+- Configurable TTL (default: 3600 seconds / 1 hour)
+- Redis connection with decode_responses enabled
+
+#### 🔄 Cache-Aware LLM Service
+
+**Location:** `app/services/llm_service.py`
+
+**Implementation Details:**
+
+1. **Non-Streaming Requests:**
+   - Check cache before LLM call
+   - Return cached response if found
+   - Cache new responses after generation
+   - Return `(result, cache_hit)` tuple
+
+2. **Streaming Requests:**
+   - **Cache Hit:** Simulate streaming by chunking cached text (50 chars/chunk)
+   - **Cache Miss:** Stream from LLM while collecting chunks, cache after completion
+   - Maintains streaming UX even for cached responses
+
+**Function Signature:**
+```python
+def generate_with_cache(
+    prompt: str,
+    temperature: float = 0.7,
+    max_tokens: int = 1024,
+    request_id: str = None,
+    stream: bool = False
+) -> tuple:
+    # Returns (result/generator, cache_hit: bool)
+```
+
+#### 📊 Cache Metrics
+
+**Response Metadata:**
+- All responses include `cache_hit: bool` field
+- Streaming responses indicate cache status in metadata
+
+**Structured Logging:**
+```python
 logger.info(
-    "cache_lookup",
+    "cache_hit",  # or "cache_miss"
     extra={
         "extra": {
             "request_id": request_id,
-            "cache_hit": cache_hit
+            "prompt": prompt,
+            "model": model,
+            "temperature": temperature
         }
     }
 )
+```
+
+**Example Response:**
+```json
+{
+  "response": "Cached response text...",
+  "model": "gemini-pro",
+  "latency": 0.001,
+  "cache_hit": true
+}
+```
+
+#### 🎯 API Integration
+
+**Non-Streaming:**
+```python
+@router.post("/chat")
+def chat(request: ChatRequest, req: Request):
+    result, cache_hit = generate_with_cache(
+        prompt=request.prompt,
+        temperature=request.temperature,
+        max_tokens=request.max_tokens,
+        request_id=req.state.request_id,
+        stream=False
+    )
+    return ChatResponse(..., cache_hit=cache_hit)
+```
+
+**Streaming:**
+```python
+@router.post("/chat/stream")
+def chat_stream(request: ChatRequest, req: Request):
+    def generate():
+        generator, cache_hit = generate_with_cache(
+            prompt=request.prompt,
+            temperature=request.temperature,
+            max_tokens=request.max_tokens,
+            request_id=req.state.request_id,
+            stream=True
+        )
+        for chunk in generator:
+            yield chunk
+    return StreamingResponse(generate(), ...)
+```
+
+#### 💡 Benefits
+
+- **Cost Reduction:** Cache hits avoid expensive LLM API calls
+- **Performance:** Sub-millisecond response times for cached requests
+- **Consistency:** Same prompt = same response (deterministic)
+- **Streaming Support:** Cached responses still stream for better UX
+- **Observability:** Cache hit/miss metrics in logs and responses
+
+#### Note
+- **No Deploy:** No deploy in PromptOps here means that the overhead for deployment becomes less, you don't need to deploy the entire app again for the new prompt effect to take place. In further commits we will see how we can reduce this overhead further. 
