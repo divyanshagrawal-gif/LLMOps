@@ -417,3 +417,31 @@ def chat_stream(request: ChatRequest, req: Request):
 
 #### Note
 - **No Deploy:** No deploy in PromptOps here means that the overhead for deployment becomes less, you don't need to deploy the entire app again for the new prompt effect to take place. In further commits we will see how we can reduce this overhead further. 
+
+### PART C - Prompt Version Switching + A/B Testing
+
+#### Why ? 
+In real systems:
+- Prompt quality changes weekly
+- You can’t redeploy for every tweak
+- You must compare prompts on real traffic
+
+So we need:
+- Config-driven prompt selection
+- Controlled rollout
+- Measurable impact
+
+### Extending to environment variables 
+We add the SUMMARIZER_PROMPT_VERSION in the environment variable to track the version of summarizer prompt version, so now we can directly call `export SUMMARIZER_PROMPT_VERSION = v3` so the prompt version will change and the start the container, no redploy happened. 
+
+### In case of production apps
+- Adding the SUMMARIZER_PROMPT_VERSION variable in environment variable solves the issue of redeployment because it was before specified in the code.
+- It helps remove the redployment phase for the changes to take effect you need to restart the service to changes to take effects which have no downtime, for changes to take effect reduced from hours to minutes. 
+
+#### Prompt A/B Testing (Controlled)
+Strategy
+- Split traffic (e.g. 50/50)
+- Assign one prompt per request
+- Stickiness via request_id
+
+
