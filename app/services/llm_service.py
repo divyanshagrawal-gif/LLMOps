@@ -14,7 +14,7 @@ def _simulate_streaming(text, chunk_size=50):
     for i in range(0, len(text), chunk_size):
         yield text[i:i + chunk_size]
 
-def generate_with_cache(prompt, temperature,max_tokens, request_id,stream,prompt_version=None):
+def generate_with_cache(prompt, temperature, max_tokens, request_id, stream, prompt_version=None, trace=None):
     model = settings.default_model
     cached = cache.get(prompt, model, temperature)
     if cached:
@@ -72,7 +72,8 @@ def generate_with_cache(prompt, temperature,max_tokens, request_id,stream,prompt
                 model=model,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                request_id=request_id
+                request_id=request_id,
+                trace=trace,
             ):
                 chunks.append(chunk)
                 full_text += chunk
@@ -94,7 +95,8 @@ def generate_with_cache(prompt, temperature,max_tokens, request_id,stream,prompt
             model=model,
             temperature=temperature,
             max_tokens=max_tokens,
-            request_id=request_id
+            request_id=request_id,
+            trace=trace,
         )
         cache.set(prompt, model, temperature, result)
         return result, False

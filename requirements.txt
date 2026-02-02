@@ -6,3 +6,4 @@ python-dotenv
 google-genai
 pyyaml
 redis
+langfuse>=2,<3

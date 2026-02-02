@@ -452,7 +452,8 @@ Strategy
 ✅ Explain why something went wrong
 
 ### PART A — Observability (LLMOps Core)
-Introduce Langfuse (LLM-native observability)
+
+**Langfuse** provides LLM-native observability: one trace per request, one generation per LLM call, with input/output, model, latency, and token usage sent to Langfuse. Configure `LANGFUSE_SECRET_KEY`, `LANGFUSE_PUBLIC_KEY`, and `LANGFUSE_HOST` in `.env`; the SDK (v2) is wired in middleware (trace per request) and in the Gemini client (generation per call, with usage from the API when available).
 
 Why Langfuse over generic APM:
 - Prompt-aware
@@ -461,3 +462,13 @@ Why Langfuse over generic APM:
 - Eval-aware
 
 Adding to docker-compose.yml langfuse and postgres
+
+using langfuse v2 instead of v3 because v3 needs clickhouse access compulsory, so avoiding clickhouse now, below is the answer as to if one should replace the entire logging with langfuse or not 
+
+| Layer              | Tool               | Purpose                      |
+| ------------------ | ------------------ | ---------------------------- |
+| **System / Infra** | Structured logging | Debugging, alerts, audits    |
+| **LLM Behavior**   | Langfuse           | Prompts, traces, evals, cost |
+
+- Logs answer “what happened?”
+- Langfuse answers “how did the LLM behave?”

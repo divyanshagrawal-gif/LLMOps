@@ -20,8 +20,9 @@ def chat(request: ChatRequest, req: Request):
         temperature=request.temperature,
         max_tokens=request.max_tokens,
         request_id=req.state.request_id,
-        stream = False,
-        prompt_version="N/A"
+        stream=False,
+        prompt_version="N/A",
+        trace=getattr(req.state, "langfuse_trace", None),
     )
 
     return ChatResponse(
@@ -32,15 +33,16 @@ def chat(request: ChatRequest, req: Request):
     )
 
 @router.post("/chat/stream")
-def chat_stream(request: ChatRequest , req: Request):
+def chat_stream(request: ChatRequest, req: Request):
     def generate():
         generator, cache_hit = generate_with_cache(
             prompt=request.prompt,
             temperature=request.temperature,
             max_tokens=request.max_tokens,
             request_id=req.state.request_id,
-            stream = True,
-            prompt_version="N/A"
+            stream=True,
+            prompt_version="N/A",
+            trace=getattr(req.state, "langfuse_trace", None),
         )
         for chunk in generator:
             yield chunk
@@ -72,7 +74,8 @@ def summarize(request: ChatRequest, req: Request):
         max_tokens=request.max_tokens,
         request_id=req.state.request_id,
         stream=False,
-        prompt_version=settings.summarizer_prompt_version
+        prompt_version=settings.summarizer_prompt_version,
+        trace=getattr(req.state, "langfuse_trace", None),
     )
 
     return {
@@ -99,7 +102,8 @@ def summarize_ab(request: ChatRequest, req: Request):
         max_tokens=request.max_tokens,
         request_id=req.state.request_id,
         stream=False,
-        prompt_version=version
+        prompt_version=version,
+        trace=getattr(req.state, "langfuse_trace", None),
     )
 
     return {
