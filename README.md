@@ -472,3 +472,21 @@ using langfuse v2 instead of v3 because v3 needs clickhouse access compulsory, s
 
 - Logs answer “what happened?”
 - Langfuse answers “how did the LLM behave?”
+
+### PART B — LLM As a Judge (LLMOps Core Evaluations)
+
+Evaluation Type :
+
+| Type         | Purpose           |
+| ------------ | ----------------- |
+| Offline eval | Compare prompts   |
+| Online eval  | Catch regressions |
+| Human eval   | Gold standard     |
+
+For every LLM repsonse we will compute : 
+
+| Eval             | Question it answers               |
+| ---------------- | --------------------------------- |
+| **Relevance**    | Did the answer address the input? |
+| **Faithfulness** | Is it grounded in the given text? |
+| **Conciseness**  | Is it unnecessarily verbose?      |

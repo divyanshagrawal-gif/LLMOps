@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     langfuse_secret_key: str
     langfuse_public_key: str
     langfuse_host: str
+    enable_llm_evals: bool
+    eval_model: str
 
     # Prompt Ops
     summarizer_prompt_version: str = "v1"

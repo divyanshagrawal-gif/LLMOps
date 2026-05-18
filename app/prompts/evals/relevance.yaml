@@ -1,0 +1,11 @@
+version: v1
+template: |
+  Rate the relevance of the answer to the input.
+
+  Input:
+  {{input}}
+
+  Answer:
+  {{output}}
+
+  Score from 1 to 5 (only number).
